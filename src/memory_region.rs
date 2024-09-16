@@ -124,6 +124,7 @@ impl MemoryRegion {
         // This can happen if a region starts at an offset from the base region
         // address, eg with rodata regions if config.optimize_rodata = true, see
         // Elf::get_ro_region.
+        println!("vm_addr: {}, len: {}", vm_addr, len);
         if vm_addr < self.vm_addr {
             return ProgramResult::Err(EbpfError::InvalidVirtualAddress(vm_addr));
         }
@@ -625,10 +626,11 @@ impl<'a> AlignedMemoryMapping<'a> {
     }
 
     /// Given a list of regions translate from virtual machine to host address
-    pub fn map(&self, access_type: AccessType, vm_addr: u64, len: u64) -> ProgramResult {
+    pub fn  map(&self, access_type: AccessType, vm_addr: u64, len: u64) -> ProgramResult {
         let index = vm_addr
             .checked_shr(ebpf::VIRTUAL_ADDRESS_BITS as u32)
             .unwrap_or(0) as usize;
+        println!("index: {}", index);
         if (1..self.regions.len()).contains(&index) {
             let region = &self.regions[index];
             if access_type == AccessType::Load || ensure_writable_region(region, &self.cow_cb) {

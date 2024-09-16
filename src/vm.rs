@@ -338,6 +338,7 @@ impl<'a, C: ContextObject> EbpfVm<'a, C> {
         stack_len: usize,
     ) -> Self {
         let config = loader.get_config();
+        println!("memory_mapping: {:?}", memory_mapping);
         let stack_pointer =
             ebpf::MM_STACK_START.saturating_add(if sbpf_version.dynamic_stack_frames() {
                 // the stack is fully descending, frames start as empty and change size anytime r11 is modified
@@ -432,6 +433,13 @@ impl<'a, C: ContextObject> EbpfVm<'a, C> {
 
     /// Invokes a built-in function
     pub fn invoke_function(&mut self, function: BuiltinFunction<C>) {
+        let x = unsafe {
+            std::ptr::addr_of_mut!(*self)
+                .cast::<u64>()
+                .offset(get_runtime_environment_key() as isize)
+                .cast::<Self>()
+        };
+        println!("vm: {:?}, function: {:?}", x, function);
         function(
             unsafe {
                 std::ptr::addr_of_mut!(*self)
